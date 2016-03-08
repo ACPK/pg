@@ -1,0 +1,6 @@
+Titre original
+Disons que cela est la première phrase.
+Et ceci est la seconde.
+Assurez-vous que "guillemets" ne posent aucun problème.
+Même si «Guillemets»?
+Ouais, pas de problème.

@@ -1,0 +1,6 @@
+Titulo original
+Digamos que esta es la primera frase.
+Y esta es la segunda.
+Hacer "comillas" seguro no son un problema.
+Incluso si «Guillemets»?
+Sí, no hay problema.
