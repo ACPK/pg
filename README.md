@@ -2,7 +2,7 @@
 
 I'm learning and testing PostgreSQL features.
 
-Instead of always tying them into my big [d50b](https://github.com/50pop/db-api) database, it seemed better to keep experiments isolated with minimum context or baggage.
+Instead of always tying them into my big [d50b](https://gitlab.com/sivers/db-api/) database, it seemed better to keep experiments isolated with minimum context or baggage.
 
 
 # Context
