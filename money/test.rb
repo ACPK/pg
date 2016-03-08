@@ -21,5 +21,16 @@ class SqlTest < Minitest::Test
 		r = {:id=>1, :money=>{:currency=>'USD', :amount=>12.34}}
 		assert_equal(r, j)
 	end
+
+	def test_raw
+		res = DB.exec("INSERT INTO transactions(money) VALUES (('EUR', 56.115)) RETURNING *")
+		assert_equal '(EUR,56.115)', res[0]['money']
+	end
+
+	def test_bad_cur
+		assert_raises PG::InvalidTextRepresentation do
+			DB.exec("INSERT INTO transactions(money) VALUES (('EUX', 56.115)) RETURNING *")
+		end
+	end
 end
 

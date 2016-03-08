@@ -3,7 +3,8 @@ BEGIN;
 DROP SCHEMA IF EXISTS sivers CASCADE;
 CREATE SCHEMA sivers;
 
-CREATE TYPE currency_amount AS (currency char(3), amount numeric);
+CREATE TYPE currency AS ENUM ('USD', 'EUR', 'NZD');
+CREATE TYPE currency_amount AS (currency currency, amount numeric);
 
 CREATE TABLE transactions (
 	id serial primary key,
