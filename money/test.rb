@@ -32,5 +32,11 @@ class SqlTest < Minitest::Test
 			DB.exec("INSERT INTO transactions(money) VALUES (('EUX', 56.115)) RETURNING *")
 		end
 	end
+
+	def test_default
+		res = DB.exec("INSERT INTO customers(id) VALUES (DEFAULT) RETURNING *")
+		assert_equal 'USD', res[0]['currency']
+		assert_equal '(USD,0)', res[0]['balance']
+	end
 end
 
