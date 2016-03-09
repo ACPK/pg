@@ -29,8 +29,9 @@ class SqlTest < Minitest::Test
 		assert_equal OE['rates']['EUR'].to_s, res[0]['rate']
 		res = DB.exec("SELECT rate FROM currency_rates WHERE code='BTC'")
 		assert_equal OE['rates']['BTC'].to_s, res[0]['rate']
-		res = DB.exec("SELECT rate FROM currency_rates WHERE code='SGD'")
-		assert_equal 0, res.ntuples
+		assert_raises PG::InvalidTextRepresentation do
+			DB.exec("SELECT rate FROM currency_rates WHERE code='SGD'")
+		end
 	end
 
 	def test_from_to

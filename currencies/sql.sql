@@ -3,12 +3,15 @@ BEGIN;
 DROP SCHEMA IF EXISTS sivers CASCADE;
 CREATE SCHEMA sivers;
 
+CREATE TYPE currency AS ENUM ('USD', 'EUR', 'JPY', 'BTC');
+CREATE TYPE currency_amount AS (currency currency, amount numeric);
+
 CREATE TABLE currencies (
-	code char(3) primary key
+	code currency primary key
 );
 
 CREATE TABLE currency_rates (
-	code char(3) NOT NULL REFERENCES currencies(code),
+	code currency NOT NULL,
 	day date NOT NULL DEFAULT current_date,
 	rate numeric,
 	PRIMARY KEY (code, day)
@@ -29,13 +32,13 @@ CREATE OR REPLACE FUNCTION update_currency_rates(jsonb) RETURNS void AS $$
 DECLARE
 	rates jsonb;
 	acurrency currencies;
-	acode text;
+	acode currency;
 	arate numeric;
 BEGIN
 	rates := jsonb_extract_path($1, 'rates');
 	FOR acurrency IN SELECT * FROM currencies LOOP
 		acode := acurrency.code;
-		arate := CAST((rates ->> acode) AS numeric);
+		arate := CAST((rates ->> acode::text) AS numeric);
 		INSERT INTO currency_rates (code, rate) VALUES (acode, arate);
 	END LOOP;
 	RETURN;
@@ -43,7 +46,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- PARAMS: amount, from.code to.code
-CREATE OR REPLACE FUNCTION currency_from_to(numeric, text, text, OUT amount numeric) AS $$
+CREATE OR REPLACE FUNCTION currency_from_to(numeric, currency, currency, OUT amount numeric) AS $$
 BEGIN
 	IF $2 = 'USD' THEN
 		SELECT ($1 * rate) INTO amount FROM currency_rates WHERE code = $3
