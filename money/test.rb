@@ -38,5 +38,10 @@ class SqlTest < Minitest::Test
 		assert_equal 'USD', res[0]['currency']
 		assert_equal '(USD,0)', res[0]['balance']
 	end
+
+	def test_add
+		res = DB.exec("INSERT INTO transactions(money) VALUES (add_money(('USD', 12.34), ('USD', 23.34))) RETURNING *")
+		assert_equal '(USD,35.68)', res[0]['money']
+	end
 end
 

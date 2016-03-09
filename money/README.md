@@ -1,5 +1,7 @@
 # Money
 
+Also see currencies directory, here.
+
 Because anything having to do with money will always be stored with two attributes...
 
 * currency char(3)
@@ -45,17 +47,13 @@ Since Bitcoin (BTC) deals in tiny (0.00000001) amounts, no need for rounding.
 The type name “money” is [taken](http://www.postgresql.org/docs/9.4/static/datatype-money.html), but maybe make a type like:
 
 ```
-CREATE TYPE cash AS (currency char(3), amount numeric);
+CREATE TYPE currency_amount AS (currency char(3), amount numeric);
 CREATE TABLE transactions (
-	money cash,
+	money currency_amount
 );
 ```
 
 ... though I don't know the implications of that, getting values in and out of JSON hashes and such.  If too difficult then I'd rather just keep currency and amount as separate columns.
-
-## thoughts?
-
-No need to reinvent the wheel.  Any experience dealing with this?
 
 ## STATUS:  works!
 
