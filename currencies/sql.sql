@@ -18,6 +18,15 @@ INSERT INTO currency_rates (code, day, rate) VALUES ('EUR', '2015-09-12', 0.8816
 INSERT INTO currency_rates (code, day, rate) VALUES ('JPY', '2015-09-12', 120.6708);
 INSERT INTO currency_rates (code, day, rate) VALUES ('BTC', '2015-09-12', 0.0043424245);
 
+CREATE TABLE transactions (
+	id serial primary key,
+	money currency_amount
+);
+
+INSERT INTO transactions (money) VALUES (('EUR',10));
+INSERT INTO transactions (money) VALUES (('JPY',1000));
+INSERT INTO transactions (money) VALUES (('BTC',0.05));
+
 -- PARAMS: JSON of currency rates https://openexchangerates.org/documentation
 CREATE OR REPLACE FUNCTION update_currency_rates(jsonb) RETURNS void AS $$
 DECLARE
@@ -26,11 +35,32 @@ DECLARE
 	arate numeric;
 BEGIN
 	rates := jsonb_extract_path($1, 'rates');
-	FOR acode IN SELECT code FROM currency_rates LOOP
+	FOR acode IN SELECT unnest(enum_range(NULL::currency)) LOOP
 		arate := CAST((rates ->> acode::text) AS numeric);
 		INSERT INTO currency_rates (code, rate) VALUES (acode, arate);
 	END LOOP;
 	RETURN;
+END;
+$$ LANGUAGE plpgsql;
+
+-- PARAMS: money, new_currency_code
+CREATE OR REPLACE FUNCTION money_to(currency_amount, currency) RETURNS currency_amount AS $$
+BEGIN
+	IF $1.currency = 'USD' THEN
+		RETURN (SELECT ($2, ($1.amount * rate)) 
+			FROM currency_rates WHERE code = $2
+			ORDER BY day DESC LIMIT 1);
+	ELSIF $2 = 'USD' THEN
+		RETURN (SELECT ($2, ($1.amount / rate))
+			FROM currency_rates WHERE code = $1.currency
+			ORDER BY day DESC LIMIT 1);
+	ELSE
+		RETURN (SELECT ($2, ((SELECT $1.amount / rate
+			FROM currency_rates WHERE code = $1.currency
+			ORDER BY day DESC LIMIT 1) * rate))
+			FROM currency_rates WHERE code = $2
+			ORDER BY day DESC LIMIT 1);
+	END IF;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -49,6 +79,20 @@ BEGIN
 				ORDER BY day DESC LIMIT 1) * rate) INTO amount
 			FROM currency_rates WHERE code = $3 ORDER BY day DESC LIMIT 1;
 	END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+-- TODO
+CREATE OR REPLACE FUNCTION moneysum(currency) RETURNS currency_amount AS $$
+DECLARE
+	ca currency_amount;
+	tot numeric;
+BEGIN
+	tot := 0;
+	FOR ca IN SELECT money FROM transactions LOOP
+		tot := tot + (SELECT amount FROM currency_from_to(ca.amount, ca.currency, $1));
+	END LOOP;
+	RETURN ($1, tot);
 END;
 $$ LANGUAGE plpgsql;
 
