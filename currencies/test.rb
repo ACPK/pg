@@ -59,5 +59,23 @@ class SqlTest < Minitest::Test
 		res = DB.exec("SELECT * FROM currency_from_to(9, 'BTC', 'JPY')")
 		assert (250099..250100).cover? res[0]['amount'].to_f 
 	end
+
+	def test_add_money
+		res = DB.exec("SELECT * FROM add_money(('USD', 10), ('EUR', 10))")
+		assert_equal 'USD', res[0]['currency']
+		assert (21..22).cover? res[0]['amount'].to_f 
+		res = DB.exec("SELECT * FROM add_money(('EUR', 10), ('USD', 10))")
+		assert_equal 'EUR', res[0]['currency']
+		assert (18..19).cover? res[0]['amount'].to_f 
+	end
+
+	def test_moneysum
+		res = DB.exec("SELECT * FROM moneysum('USD')")
+		assert_equal 'USD', res[0]['currency']
+		assert (31..32).cover? res[0]['amount'].to_f 
+		res = DB.exec("SELECT * FROM moneysum('JPY')")
+		assert_equal 'JPY', res[0]['currency']
+		assert (3750..3770).cover? res[0]['amount'].to_f 
+	end
 end
 

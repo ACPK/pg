@@ -82,17 +82,29 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- TODO
+
+-- PARAMS: money1, money2. Uses money1.currency!
+CREATE OR REPLACE FUNCTION add_money(currency_amount, currency_amount) RETURNS currency_amount AS $$
+BEGIN
+	IF $1.currency = $2.currency THEN
+		RETURN ($1.currency, ($1.amount + $2.amount));
+	ELSE
+		RETURN ($1.currency, ($1.amount + (money_to($2, $1.currency)).amount));
+	END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+
 CREATE OR REPLACE FUNCTION moneysum(currency) RETURNS currency_amount AS $$
 DECLARE
-	ca currency_amount;
-	tot numeric;
+	tot currency_amount;
+	t record;
 BEGIN
-	tot := 0;
-	FOR ca IN SELECT money FROM transactions LOOP
-		tot := tot + (SELECT amount FROM currency_from_to(ca.amount, ca.currency, $1));
+	tot := ($1, 0);
+	FOR t IN SELECT * FROM transactions LOOP
+		tot := add_money(tot, t.money);
 	END LOOP;
-	RETURN ($1, tot);
+	RETURN tot;
 END;
 $$ LANGUAGE plpgsql;
 
